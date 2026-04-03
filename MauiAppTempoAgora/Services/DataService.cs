@@ -1,5 +1,6 @@
 ﻿using MauiAppTempoAgora.Models;
 using Newtonsoft.Json.Linq;
+using System.Net;
 
 namespace MauiAppTempoAgora.Services
 {
@@ -12,41 +13,56 @@ namespace MauiAppTempoAgora.Services
             // Use sua chave ativa do OpenWeatherMap
             string chave = "ccb5920f163cfefdae69316f034fb9ba";
 
-            // Corrigindo a URL (sem o "+")
+            
             string url = $"https://api.openweathermap.org/data/2.5/weather?q={cidade}&units=metric&appid={chave}";
 
             using (HttpClient client = new HttpClient())
             {
-                HttpResponseMessage resp = await client.GetAsync(url);
-
-                if (resp.IsSuccessStatusCode)
+                HttpResponseMessage resp;
+                try
                 {
-                    string json = await resp.Content.ReadAsStringAsync();
-                    var rascunho = JObject.Parse(json);
+                    resp = await client.GetAsync(url);
+                }
+                catch (HttpRequestException)
+                {
+                    throw new Exception("Erro de Conexão! Verifique sua internet e tente novamente.");
+                }
 
-                    // Converter sunrise/sunset de Unix para DateTime legível
-                    var sunriseUnix = (long?)rascunho["sys"]?["sunrise"] ?? 0;
-                    var sunsetUnix = (long?)rascunho["sys"]?["sunset"] ?? 0;
+                //Erro Cidade não encontrada
+                if (resp.StatusCode == HttpStatusCode.NotFound)
+                {
+                    throw new Exception("Ops... Cidade não encontrada! Tente novamente.");
+                }
 
-                    DateTime sunrise = DateTimeOffset.FromUnixTimeSeconds(sunriseUnix).ToLocalTime().DateTime;
-                    DateTime sunset = DateTimeOffset.FromUnixTimeSeconds(sunsetUnix).ToLocalTime().DateTime;
+                //Outros erros de dados 
+                if (!resp.IsSuccessStatusCode)
+                {
+                    throw new Exception($"Erro ao buscar dados: {resp.ReasonPhrase}");
+                }
 
-                    // Preencher objeto Tempo
-                    t = new Tempo
-                    {
-                        lat = (double?)rascunho["coord"]?["lat"] ?? 0,
-                        lon = (double?)rascunho["coord"]?["lon"] ?? 0,
-                        description = (string?)rascunho["weather"]?[0]?["description"] ?? "Indefinido",
-                        main = (string?)rascunho["weather"]?[0]?["main"] ?? "Indefinido",
-                        temp_min = (double?)rascunho["main"]?["temp_min"] ?? 0,
-                        temp_max = (double?)rascunho["main"]?["temp_max"] ?? 0,
-                        speed = (double?)rascunho["wind"]?["speed"] ?? 0,
-                        visibility = (int?)rascunho["visibility"] ?? 0,
-                        sunrise = sunrise.ToString("HH:mm"),
-                        sunset = sunset.ToString("HH:mm")
-                    }; // Fecha obj do tempo.
-                } // Fecha if se o status do servidor for de sucesso 
-            } // Fecha laço using
+                //Processamento dos dados 
+                string json = await resp.Content.ReadAsStringAsync();
+
+                var rascunho = JObject.Parse(json);
+
+                DateTime time = new();
+                DateTime sunrise = time.AddSeconds((double)rascunho["sys"]["sunrise"]).ToLocalTime();
+                DateTime sunset = time.AddSeconds((double)rascunho["sys"]["sunset"]).ToLocalTime();
+
+                t = new()
+                {
+                    lat = (double)rascunho["coord"]["lat"],
+                    lon = (double)rascunho["coord"]["lon"],
+                    description = (string)rascunho["weather"][0]["description"],
+                    main = (string)rascunho["weather"][0]["main"],
+                    temp_min = (double)rascunho["main"]["temp_min"],
+                    temp_max = (double)rascunho["main"]["temp_max"],
+                    speed = (double)rascunho["wind"]["speed"],
+                    visibility = (int)rascunho["visibility"],
+                    sunrise = sunrise.ToString(),
+                    sunset = sunset.ToString()
+                }; // Fecha objeto do Tempo
+            } // Fecha laço do using
 
             return t;
         }

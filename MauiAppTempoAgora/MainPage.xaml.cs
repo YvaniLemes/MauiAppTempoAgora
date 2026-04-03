@@ -5,6 +5,8 @@ namespace MauiAppTempoAgora
 {
     public partial class MainPage : ContentPage
     {
+        private string dados_previsao;
+
         public MainPage()
         {
             InitializeComponent();
@@ -20,12 +22,15 @@ namespace MauiAppTempoAgora
 
                     if (t != null)
                     {
-                        string dados_previsao = $"Latitude: {t.lat}\n" +
-                                                $"Longitude: {t.lon}\n" +
-                                                $"Nascer do Sol: {t.sunrise}\n" +
-                                                $"Por do Sol: {t.sunset}\n" +
-                                                $"Temperatura Máx: {t.temp_max}\n" +
-                                                $"Temperatura Min: {t.temp_min}\n";
+                        dados_previsao = $"Descrição:  {t.description} \n" +
+                                         $"Temp Min: {t.temp_min} \n" +
+                                         $"Temp Max: {t.temp_max} \n" +
+                                         $"Vento: {t.speed} \n" +
+                                         $"Visibilidade:  {t.visibility} \n" +
+                                         $"Latitude:  {t.lat} \n" +
+                                         $"Longitude:  {t.lon} \n" +
+                                         $"Nascer do Sol: {t.sunrise} \n" +
+                                         $"Por do Sol: {t.sunset} \n";
 
                         lbl_res.Text = dados_previsao;
                     }
