@@ -23,24 +23,24 @@ namespace MauiAppTempoAgora.Services
                 {
                     resp = await client.GetAsync(url);
                 }
-                catch (HttpRequestException)
+                catch (HttpRequestException) //Erro de conexão - Fichário ag07
                 {
                     throw new Exception("Erro de Conexão! Verifique sua internet e tente novamente.");
                 }
 
-                //Erro Cidade não encontrada
+                //Erro Cidade não encontrada ERRO 404 NOTFOUND - Fichário ag07
                 if (resp.StatusCode == HttpStatusCode.NotFound)
                 {
                     throw new Exception("Ops... Cidade não encontrada! Tente novamente.");
                 }
 
-                //Outros erros de dados 
+                
                 if (!resp.IsSuccessStatusCode)
                 {
                     throw new Exception($"Erro ao buscar dados: {resp.ReasonPhrase}");
                 }
 
-                //Processamento dos dados 
+                
                 string json = await resp.Content.ReadAsStringAsync();
 
                 var rascunho = JObject.Parse(json);
