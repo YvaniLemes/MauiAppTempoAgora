@@ -7,8 +7,9 @@ namespace MauiAppTempoAgora
 {
     public partial class MainPage : ContentPage
     {
-        private string dados_previsao;
-        private string local_disp;
+        // Campos anuláveis
+        private string? dados_previsao;
+        private string? local_disp;
 
         public MainPage()
         {
