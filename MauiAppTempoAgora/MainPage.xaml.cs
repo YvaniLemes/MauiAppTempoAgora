@@ -1,7 +1,7 @@
 ﻿using MauiAppTempoAgora.Models;
 using MauiAppTempoAgora.Services;
-using Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;
-using System.Linq.Expressions;
+using System;
+using System.Diagnostics;
 
 namespace MauiAppTempoAgora
 {
@@ -15,7 +15,6 @@ namespace MauiAppTempoAgora
         {
             InitializeComponent();
         }
-
         private async void Button_Clicked_Previsao(object sender, EventArgs e)
         {
             try
@@ -26,6 +25,8 @@ namespace MauiAppTempoAgora
 
                     if (t != null)
                     {
+                        string dados_previsao = "";
+
                         dados_previsao = $"Descrição:  {t.description} \n" +
                                          $"Temp Min: {t.temp_min} \n" +
                                          $"Temp Max: {t.temp_max} \n" +
@@ -37,6 +38,16 @@ namespace MauiAppTempoAgora
                                          $"Por do Sol: {t.sunset} \n";
 
                         lbl_res.Text = dados_previsao;
+
+                        string mapa = $"https://embed.windy.com/embed.html?" +
+                                      $"type=map&location=coordinates&metricRain=mm&metricTemp=°C" +
+                                      $"&metricWind=km/h&zoom=5&overlay=wind&product=ecmwf&level=surface" +
+                                      $"&lat={t.lat.ToString().Replace(",", ".")}&lon={t.lon.ToString().Replace(",", ".")}";
+
+                        wv_mapa.Source = mapa;
+
+                        Debug.WriteLine(mapa);
+
                     }
                     else
                     {
@@ -46,7 +57,6 @@ namespace MauiAppTempoAgora
                 else
                 {
                     lbl_res.Text = "Informe sua cidade.";
-
                 }
             }
             catch (Exception ex)
@@ -54,7 +64,6 @@ namespace MauiAppTempoAgora
                 await DisplayAlert("Ops", ex.Message, "Ok");
             }
         }
-
         private async void Button_Clicked_Localizacao(object sender, EventArgs e)
         {
             try
@@ -63,24 +72,22 @@ namespace MauiAppTempoAgora
                     GeolocationAccuracy.Medium,
                     TimeSpan.FromSeconds(10)
                     );
-
                 Location? local = await Geolocation.Default.GetLocationAsync(request);
 
                 if (local != null)
                 {
-                    local_disp = $"Latitude: {local.Latitude} \n" +
+                    string local_disp = $"Latitude: {local.Latitude} \n" +
                                         $"Longitude: {local.Longitude}";
+
                     lbl_coords.Text = local_disp;
 
                     // Pega nome da cidade que está nas coordenadas.
                     GetCidade(local.Latitude, local.Longitude);
-
                 }
                 else
                 {
                     lbl_coords.Text = "Nenhuma localização";
                 }
-
             }
             catch (FeatureNotSupportedException fnsEx)
             {
@@ -98,9 +105,7 @@ namespace MauiAppTempoAgora
             {
                 await DisplayAlert("Erro", ex.Message, "OK");
             }
-
         }
-
         private async void GetCidade(double lat, double lon)
         {
             try
@@ -113,7 +118,6 @@ namespace MauiAppTempoAgora
                 if (place != null)
                 {
                     txt_cidade.Text = place.Locality;
-
                 }
             }
             catch (Exception ex)
@@ -123,4 +127,5 @@ namespace MauiAppTempoAgora
         }
     }
 }
+
 
